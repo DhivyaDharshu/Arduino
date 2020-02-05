@@ -1,0 +1,58 @@
+
+#include <SoftwareSerial.h> // Allows serial communication on other digital pins of the Arduino
+SoftwareSerial mySerial(9, 10); // Connecting the Tx and Rx pins of GSM module to digital pins 9 and 10 of the Arduino respectively
+
+int gas_sensor=7; // Assigning the digital pin number 7 to LPG gas sensor
+int piezo_buzzer=11; // Assigning the digital pin number 11 to Piezo Buzzer
+int gas_value,Gas_alert_val; // Initializing the variables to check the status of LPG gas 
+
+void setup() // Code that runs once
+{
+
+pinMode(gas_sensor,INPUT); // To configure the gas sensor as an INPUT
+mySerial.begin(9600);  // Setting the baud rate of GSM Module  
+Serial.begin(9600); // Setting the baud rate of Serial Monitor (Arduino)
+delay(500); // A delay of 500ns
+
+}
+
+void loop() // Code that runs repeatedly
+{
+CheckGasStatus(); // Function call to the function CheckGasStatus
+}
+
+void CheckGasStatus() // Function to check the status of LPG gas, if gas value is LOW then a SMS alert will be sent
+{
+
+Gas_alert_val=ScanGas(); // Making a function call to ScanGas() and storing the result in the variable Gas_alert_val
+if(Gas_alert_val==LOW) // When the Gas_alert_val is LOW condition is met
+{
+ SendAlert();// Function to send SMS Alerts
+ 
+}}
+
+int ScanGas() // Function to know the gas status
+{
+gas_value=digitalRead(gas_sensor); // reads the sensor output (Vout of LM35)
+
+return gas_value; // returns temperature value in degree celsius
+}
+
+void SendAlert() // Function to send SMS alert and ringing buzzer
+{ 
+SendTextMessage();// Function to send AT Commands to GSM module
+tone(piezo_buzzer,450); // Generates the sound of a specified frequency
+}
+
+
+void SendTextMessage() // Function to send SMS to user 
+{
+  mySerial.println("AT+CMGF=1");    //To send SMS in Text Mode
+  delay(1000);
+  mySerial.println("AT+CMGS=\"+918919023178\"\r"); // Input the phone number we are using 
+  delay(1000);
+  mySerial.println("Gas Leaking!");// The content of the message to be sent
+  delay(200);
+  mySerial.println((char)26);// The stopping character
+  delay(1000);
+}
